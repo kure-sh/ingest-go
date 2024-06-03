@@ -588,6 +588,8 @@ func (g *Generator) referenceType(t *types.Named, d *doc.Type) (*spec.Type, erro
 }
 
 func (g *Generator) builtinReferenceType(pkgPath, name string) *spec.Type {
+	meta := "meta"
+
 	switch {
 	case pkgPath == "k8s.io/apimachinery/pkg/runtime" && (name == "Object" || name == "RawExtension"):
 		return &spec.Type{Variant: &spec.UnknownType{}}
@@ -598,6 +600,24 @@ func (g *Generator) builtinReferenceType(pkgPath, name string) *spec.Type {
 				Values: []spec.Type{
 					{Variant: &spec.IntegerType{Size: 32}},
 					{Variant: &spec.StringType{}},
+				},
+			},
+		}
+
+	// TODO: this is kinda janky
+	case pkgPath == "k8s.io/apimachinery/pkg/api/resource" && name == "Quantity":
+		return &spec.Type{
+			Variant: &spec.ReferenceType{
+				Target: spec.ReferenceTarget{
+					Scope: &spec.ReferenceScope{
+						Package: "kubernetes",
+						Group: spec.APIGroupIdentifier{
+							Module: &meta,
+							Name:   meta,
+						},
+						Version: "v1",
+					},
+					Name: name,
 				},
 			},
 		}
