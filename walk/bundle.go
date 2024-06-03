@@ -83,9 +83,10 @@ func pruneDefinitions(conf *config.Config, gvs []*spec.APIGroupVersion) {
 				k = key{gv.Group.Name, gv.Version, v.Target.Name}
 			}
 
+			_, seen := refs[k]
 			refs[k] += 1
 
-			if qt, ok := index[k]; ok {
+			if qt, ok := index[k]; ok && !seen {
 				visit(qt.gv, qt.t)
 			}
 
@@ -115,10 +116,13 @@ func pruneDefinitions(conf *config.Config, gvs []*spec.APIGroupVersion) {
 
 	// Visit every type visible from a resource (de facto public API).
 	for _, gv := range gvs {
-		for i, def := range gv.Definitions {
+		for _, def := range gv.Definitions {
 			if _, ok := def.Value.Variant.(*spec.ResourceType); ok {
-				refs[key{gv.Group.Name, gv.Version, def.Name}] += 1
-				visit(gv, &gv.Definitions[i].Value)
+				visit(gv, &spec.Type{
+					Variant: &spec.ReferenceType{
+						Target: spec.ReferenceTarget{Name: def.Name},
+					},
+				})
 			}
 		}
 	}
