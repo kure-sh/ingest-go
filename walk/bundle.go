@@ -24,7 +24,16 @@ func GenerateBundle(gctx *GeneratorContext) (*spec.Bundle, error) {
 		gvs = append(gvs, gv)
 	}
 
-	pruneDefinitions(gctx.Config, gvs)
+	prune := false
+	for _, export := range gctx.Config.Exports {
+		if export.Prune {
+			prune = true
+			break
+		}
+	}
+	if prune {
+		pruneDefinitions(gctx.Config, gvs)
+	}
 
 	mgvs, err := applyMerges(gctx.Config, gvs)
 	if err != nil {
