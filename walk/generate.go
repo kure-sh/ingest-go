@@ -605,7 +605,7 @@ func (g *Generator) builtinReferenceType(pkgPath, name string) *spec.Type {
 		}
 
 	// TODO: this is kinda janky
-	case pkgPath == "k8s.io/apimachinery/pkg/api/resource" && name == "Quantity":
+	case pkgPath == "k8s.io/apimachinery/pkg/api/resource" && (name == "Quantity" || name == "QuantityValue"):
 		return &spec.Type{
 			Variant: &spec.ReferenceType{
 				Target: spec.ReferenceTarget{
@@ -617,7 +617,7 @@ func (g *Generator) builtinReferenceType(pkgPath, name string) *spec.Type {
 						},
 						Version: "v1",
 					},
-					Name: name,
+					Name: "Quantity",
 				},
 			},
 		}
