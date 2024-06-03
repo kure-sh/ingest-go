@@ -1,0 +1,5 @@
+dist/
+
+/ingest
+/ingest-go
+/kure-ingest-go
