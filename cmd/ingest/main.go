@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/alecthomas/kong"
 
@@ -12,6 +14,7 @@ import (
 
 var cli struct {
 	Config   string   `short:"c" default:"kure.toml" help:"kure.toml configuration file"`
+	Cd       string   `short:"d" type:"path" help:"Change to this directory before starting"`
 	Output   string   `short:"o" default:"schema" help:"Directory to write generated schemas"`
 	Packages []string `arg:"" help:"Go packages to scan" name:"package"`
 }
@@ -25,6 +28,17 @@ func main() {
 	conf, err := config.LoadConfig(cli.Config)
 	if err != nil {
 		log.Fatalf("failed to load kure.toml: %v", err)
+	}
+
+	output, err := filepath.Abs(cli.Output)
+	if err != nil {
+		log.Fatalf("failed to resolve output path %q: %v", cli.Output, err)
+	}
+
+	if cli.Cd != "" && cli.Cd != "." {
+		if err := os.Chdir(cli.Cd); err != nil {
+			log.Fatalf("failed to change working directory to %q: %v", cli.Cd, err)
+		}
 	}
 
 	packages, err := walk.LoadPackages(cli.Packages...)
@@ -47,7 +61,7 @@ func main() {
 
 	fmt.Printf("API: %s\n", bundle.API.Name)
 
-	if err := walk.WriteBundle(bundle, cli.Output); err != nil {
+	if err := walk.WriteBundle(bundle, output); err != nil {
 		log.Fatalf("error: %v", err)
 	}
 }
