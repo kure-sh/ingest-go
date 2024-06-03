@@ -109,6 +109,9 @@ func (g *Generator) Definitions() ([]spec.Definition, error) {
 
 	for _, tn := range g.decls.Types {
 		name := tn.Name()
+		if !g.included(name) {
+			continue
+		}
 
 		named, ok := tn.Type().(*types.Named)
 		if !ok {
@@ -129,6 +132,28 @@ func (g *Generator) Definitions() ([]spec.Definition, error) {
 	}
 
 	return defs, nil
+}
+
+func (g *Generator) included(name string) bool {
+	if len(g.Export.Exclude) > 0 {
+		for _, n := range g.Export.Exclude {
+			if name == n {
+				return false
+			}
+		}
+	}
+
+	if len(g.Export.Include) > 0 {
+		for _, n := range g.Export.Include {
+			if name == n {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	return true
 }
 
 func (g *Generator) underlying(named *types.Named) types.Type {

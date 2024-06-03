@@ -20,6 +20,9 @@ type Export struct {
 	Group   string `toml:"group"`
 	Version string `toml:"version"`
 
+	Include []string `toml:"include,omitempty"`
+	Exclude []string `toml:"exclude,omitempty"`
+
 	ExplicitNull bool   `toml:"explicit-null,omitempty"`
 	Prune        bool   `toml:"prune,omitempty"`
 	Merge        *Merge `toml:"merge,omitempty"`
