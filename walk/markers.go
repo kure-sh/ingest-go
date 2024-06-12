@@ -119,8 +119,16 @@ func (c packageComments) get(filename string, lastLine int) *ast.CommentGroup {
 // Scan a ;-separated list of quoted strings and bare strings.
 func scanEnumValidation(spec string) (values []string, err error) {
 	i := 0
+	l := len(spec)
 
-	for i < len(spec) {
+	brace := false
+	if spec[0] == '{' && spec[l-1] == '}' {
+		brace = true
+		i++
+		l--
+	}
+
+	for i < l {
 		n := strings.IndexAny(spec[i:], `";`)
 		if n < 0 {
 			break
@@ -145,13 +153,13 @@ func scanEnumValidation(spec string) (values []string, err error) {
 			values = append(values, value)
 
 			i += len(quoted)
-			if i < len(spec) && spec[i] == ';' {
+			if i < l && (spec[i] == ';' || (brace && spec[i] == ',')) {
 				i++
 			}
 		}
 	}
-	if i < len(spec) {
-		values = append(values, spec[i:])
+	if i < l {
+		values = append(values, spec[i:l])
 	}
 
 	return
