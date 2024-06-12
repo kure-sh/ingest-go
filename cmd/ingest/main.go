@@ -51,6 +51,10 @@ func main() {
 		log.Fatalf("failed to load go.mod: %v", err)
 	}
 
+	if err := conf.ResolveVersions(local.Dependencies); err != nil {
+		log.Fatalf("failed to resolve dependency version: %v", err)
+	}
+
 	walk.APIPackages(conf, local, packages)
 	gctx := walk.NewGeneratorContext(conf, packages)
 

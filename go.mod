@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/alecthomas/kong v0.9.0
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/gobuffalo/flect v0.3.0 // indirect

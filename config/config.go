@@ -1,10 +1,13 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/kure-sh/ingest-go/spec"
 	"github.com/pelletier/go-toml/v2"
+	"golang.org/x/mod/modfile"
 )
 
 type Config struct {
@@ -45,6 +48,7 @@ type Merge struct {
 
 type Dependency struct {
 	Name    string `toml:"name"`
+	Path    string `toml:"path,omitempty"`
 	Version string `toml:"version,omitempty"`
 }
 
@@ -106,6 +110,36 @@ func (c *Config) ResolvePackage(path string) Package {
 		if extern.Path == path {
 			return &c.Externs[i]
 		}
+	}
+
+	return nil
+}
+
+func (c *Config) ResolveVersions(required map[string]*modfile.Require) error {
+	for i, dep := range c.Dependencies {
+		if dep.Version != "" {
+			continue
+		}
+		if dep.Path == "" {
+			return fmt.Errorf("dependency %q: no path or version set", dep.Name)
+		}
+
+		req := required[dep.Path]
+		if req == nil {
+			return fmt.Errorf("dependency %q: not required in go.mod", dep.Name)
+		}
+
+		version, err := semver.NewVersion(req.Mod.Version)
+		if err != nil {
+			return fmt.Errorf("dependency %q: invalid version %q: %w", dep.Name, req.Mod.Version, err)
+		}
+
+		major, minor := version.Major(), version.Minor()
+		if dep.Name == "kubernetes" && major == 0 {
+			major = 1
+		}
+
+		c.Dependencies[i].Version = fmt.Sprintf("%d.%d", major, minor)
 	}
 
 	return nil
