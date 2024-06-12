@@ -13,6 +13,7 @@ type Bundle struct {
 func NewBundle(gvs []*APIGroupVersion) (*Bundle, error) {
 	apiName := ""
 	groups := []*APIGroup{}
+	var deps []APIDependency
 
 	for _, gv := range gvs {
 		if apiName == "" {
@@ -40,6 +41,23 @@ func NewBundle(gvs []*APIGroupVersion) (*Bundle, error) {
 			}
 			groups = append(groups, group)
 		}
+
+		for _, dep := range gv.Dependencies {
+			found := false
+			for _, existing := range deps {
+				if existing.Package == dep.Package {
+					if existing.Version != dep.Version {
+						return nil, fmt.Errorf("version mismatch of dependency %s", dep.Package)
+					}
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				deps = append(deps, dep)
+			}
+		}
 	}
 
 	var groupIds []APIGroupIdentifier
@@ -48,10 +66,11 @@ func NewBundle(gvs []*APIGroupVersion) (*Bundle, error) {
 	}
 
 	api := API{
-		APIVersion: APIVersion,
-		Kind:       "API",
-		Name:       apiName,
-		Groups:     groupIds,
+		APIVersion:   APIVersion,
+		Kind:         "API",
+		Name:         apiName,
+		Dependencies: deps,
+		Groups:       groupIds,
 	}
 
 	return &Bundle{
@@ -69,6 +88,8 @@ type API struct {
 
 	Name    string `json:"name,omitempty"`
 	Version string `json:"version,omitempty"`
+
+	Dependencies []APIDependency `json:"dependencies"`
 
 	Groups []APIGroupIdentifier `json:"groups"`
 }
