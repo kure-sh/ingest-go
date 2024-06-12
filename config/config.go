@@ -12,9 +12,15 @@ import (
 
 type Config struct {
 	Name         string       `toml:"name"`
+	Build        *Build       `toml:"build,omitempty"`
 	Exports      []Export     `toml:"export"`
 	Dependencies []Dependency `toml:"dependency"`
 	Externs      []Extern     `toml:"extern"`
+}
+
+type Build struct {
+	Source   string   `toml:"source"`
+	Packages []string `toml:"packages,omitempty"`
 }
 
 type Export struct {

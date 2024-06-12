@@ -16,7 +16,7 @@ var cli struct {
 	Config   string   `short:"c" default:"kure.toml" help:"kure.toml configuration file"`
 	Cd       string   `short:"d" type:"path" help:"Change to this directory before starting"`
 	Output   string   `short:"o" default:"schema" help:"Directory to write generated schemas"`
-	Packages []string `arg:"" help:"Go packages to scan" name:"package"`
+	Packages []string `arg:"" optional:"" help:"Go packages to scan" name:"package"`
 }
 
 func main() {
@@ -41,7 +41,16 @@ func main() {
 		}
 	}
 
-	packages, err := walk.LoadPackages(cli.Packages...)
+	patterns := cli.Packages
+	if len(patterns) == 0 {
+		if conf.Build == nil || len(conf.Build.Packages) == 0 {
+			log.Fatalf("no Go packages defined on command line or in %s", cli.Config)
+		}
+
+		patterns = conf.Build.Packages
+	}
+
+	packages, err := walk.LoadPackages(patterns...)
 	if err != nil {
 		log.Fatalf("failed to load packages: %v", err)
 	}
